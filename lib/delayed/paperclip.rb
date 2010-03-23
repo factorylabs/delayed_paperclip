@@ -2,10 +2,14 @@ module Delayed
   module Paperclip
     def self.included(base)
       base.extend(ClassMethods)
+      base.cattr_accessor :delayed_paperclip_backend
     end
 
     module ClassMethods
-      def process_in_background(name)
+      def process_in_background(name, backend = :delayed_job)
+        
+        self.delayed_paperclip_backend = backend
+        
         include InstanceMethods
 
         define_method "#{name}_changed?" do
@@ -66,11 +70,11 @@ module Delayed
       end
 
       def delayed_job?
-        defined? Delayed::Job
+        self.class.delayed_paperclip_backend == :delayed_job
       end
 
       def resque?
-        defined? Resque
+        self.class.delayed_paperclip_backend == :resque
       end
       
       def column_exists?(column)
