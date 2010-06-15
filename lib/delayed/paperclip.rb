@@ -6,7 +6,8 @@ module Delayed
     end
 
     module ClassMethods
-      def process_in_background(name, backend = :delayed_job)
+      
+      def process_in_background(name, backend = autodetect_backend)
         
         self.delayed_paperclip_backend = backend
         
@@ -54,6 +55,15 @@ module Delayed
         after_save  :"enqueue_job_for_#{name}"
       end
     end
+    
+    def autodetect_backend
+      if defined? Delayed::Job 
+        :delayed_job
+      elsif defined? Resque
+        :resque
+      end
+    end
+      
 
     module InstanceMethods
       PAPERCLIP_ATTRIBUTES = ['_file_size', '_file_name', '_content_type', '_updated_at']
